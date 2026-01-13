@@ -205,17 +205,17 @@ function renderFriendsList() {
         return;
     }
 
-    // Sort friends: favorites first, then alphabetically
+    // Sort friends: favorites first, then preserve original order (by distance from FindMy)
     const sortedFriends = [...friendsData].sort((a, b) => {
         const aIsFav = isFavorite(a.name);
         const bIsFav = isFavorite(b.name);
         
-        // Favorites go first
+        // Favorites go first, otherwise maintain original order
         if (aIsFav && !bIsFav) return -1;
         if (!aIsFav && bIsFav) return 1;
         
-        // Then sort alphabetically
-        return a.name.localeCompare(b.name);
+        // Keep original order (no alphabetical sorting)
+        return 0;
     });
 
     const selectedFriend = document.getElementById('selected-friend').textContent;
@@ -373,6 +373,11 @@ async function selectCurrentFriend() {
         await waitForTask(taskId, 30);
         
         showStatus('friend-task-status', 'Friend selected successfully!', 'success');
+        
+        // Refresh the friends list to update selected status everywhere
+        await loadFriends();
+        
+        // Update the local status as well
         updateFriendSelectedStatus();
         
         setTimeout(() => hideStatus('friend-task-status'), 3000);
