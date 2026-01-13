@@ -123,6 +123,14 @@ def index():
 def friend_page(friend_name):
   return send_from_directory(PUBLIC_DIR, 'index.html')
 
+@app.route('/screenshots')
+def screenshots_page():
+  return send_from_directory(PUBLIC_DIR, 'index.html')
+
+@app.route('/screenshots/<path:filename>')
+def screenshot_page(filename):
+  return send_from_directory(PUBLIC_DIR, 'index.html')
+
 @app.route('/<path:path>')
 def serve_static(path):
   try: return send_from_directory(PUBLIC_DIR, path)

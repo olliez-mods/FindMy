@@ -63,6 +63,7 @@
         </div>
 
         <button id="sync-btn" onclick="syncFriends()">Sync Friends List</button>
+        <button id="screenshots-btn" onclick="showScreenshots()">Screenshots</button>
 
         <div id="sync-status" class="status hidden"></div>
 
@@ -91,6 +92,37 @@
             <h3>Last Screenshot:</h3>
             <img id="friend-screenshot" src="" alt="No screenshot available" style="display: none;">
             <div id="no-screenshot" class="status">No screenshot available</div>
+        </div>
+    </div>
+
+    <!-- Screenshots View -->
+    <div id="screenshots-view" class="hidden">
+        <button class="back-btn" onclick="showFriendsList()">← Back to Friends</button>
+        
+        <h2>Screenshots</h2>
+        
+        <button id="delete-all-screenshots-btn" onclick="deleteAllScreenshots()" style="background-color: #dc3545; color: white;">Delete All Screenshots</button>
+        
+        <div id="screenshots-task-status" class="status hidden"></div>
+        
+        <div id="screenshots-container">
+            <div class="status loading">Loading screenshots...</div>
+        </div>
+    </div>
+
+    <!-- Screenshot Detail View -->
+    <div id="screenshot-detail-view" class="hidden">
+        <button class="back-btn" onclick="showScreenshots()">← Back to Screenshots</button>
+        
+        <h2 id="screenshot-name">Screenshot</h2>
+        
+        <button id="delete-screenshot-btn" onclick="deleteCurrentScreenshot()" style="background-color: #dc3545; color: white;">Delete Screenshot</button>
+        
+        <div id="screenshot-task-status" class="status hidden"></div>
+        
+        <div id="screenshot-display">
+            <img id="current-screenshot" src="" alt="Screenshot" style="display: none;">
+            <div id="screenshot-error" class="status error hidden">Failed to load screenshot</div>
         </div>
     </div>
 

@@ -1,6 +1,8 @@
 // Global state
 let currentFriend = null;
+let currentScreenshot = null;
 let friendsData = [];
+let screenshotsData = [];
 
 // Utility functions
 function showStatus(elementId, message, type = 'loading') {
@@ -147,6 +149,8 @@ function showFriendDetail(friendName) {
     
     // Switch views
     document.getElementById('friends-view').classList.add('hidden');
+    document.getElementById('screenshots-view').classList.add('hidden');
+    document.getElementById('screenshot-detail-view').classList.add('hidden');
     document.getElementById('friend-detail-view').classList.remove('hidden');
     
     // Update friend details
@@ -168,9 +172,12 @@ function showFriendsList() {
     
     // Switch views
     document.getElementById('friend-detail-view').classList.add('hidden');
+    document.getElementById('screenshots-view').classList.add('hidden');
+    document.getElementById('screenshot-detail-view').classList.add('hidden');
     document.getElementById('friends-view').classList.remove('hidden');
     
     currentFriend = null;
+    currentScreenshot = null;
 }
 
 async function updateFriendSelectedStatus() {
@@ -272,11 +279,156 @@ async function takeScreenshot() {
     }
 }
 
+// Screenshots functions
+async function loadScreenshots() {
+    try {
+        const data = await apiCall('/api/list_screenshots');
+        screenshotsData = data.screenshots || [];
+        renderScreenshotsList();
+    } catch (error) {
+        document.getElementById('screenshots-container').innerHTML = 
+            `<div class="status error">Error loading screenshots: ${error.message}</div>`;
+    }
+}
+
+function renderScreenshotsList() {
+    const container = document.getElementById('screenshots-container');
+    
+    if (screenshotsData.length === 0) {
+        container.innerHTML = '<div class="status">No screenshots found.</div>';
+        return;
+    }
+
+    // Sort by modification time, newest first
+    const sortedScreenshots = screenshotsData.sort((a, b) => b[1] - a[1]);
+
+    container.innerHTML = sortedScreenshots.map(([filename, timestamp]) => `
+        <div class="friend-item" onclick="showScreenshotDetail('${filename}')">
+            <strong>${filename}</strong><br>
+            <small>Created: ${formatTime(timestamp)}</small>
+        </div>
+    `).join('');
+}
+
+function showScreenshots() {
+    // Update URL
+    window.history.pushState({view: 'screenshots'}, '', '/screenshots');
+    
+    // Switch views
+    document.getElementById('friends-view').classList.add('hidden');
+    document.getElementById('friend-detail-view').classList.add('hidden');
+    document.getElementById('screenshot-detail-view').classList.add('hidden');
+    document.getElementById('screenshots-view').classList.remove('hidden');
+    
+    currentFriend = null;
+    currentScreenshot = null;
+    
+    // Load screenshots
+    loadScreenshots();
+}
+
+function showScreenshotDetail(filename) {
+    currentScreenshot = filename;
+    
+    // Update URL
+    window.history.pushState({view: 'screenshot', filename: filename}, '', `/screenshots/${encodeURIComponent(filename)}`);
+    
+    // Switch views
+    document.getElementById('screenshots-view').classList.add('hidden');
+    document.getElementById('screenshot-detail-view').classList.remove('hidden');
+    
+    // Update screenshot details
+    document.getElementById('screenshot-name').textContent = filename;
+    
+    // Load the screenshot image
+    const imgElement = document.getElementById('current-screenshot');
+    const errorElement = document.getElementById('screenshot-error');
+    
+    imgElement.onload = function() {
+        imgElement.style.display = 'block';
+        errorElement.classList.add('hidden');
+    };
+    
+    imgElement.onerror = function() {
+        imgElement.style.display = 'none';
+        errorElement.classList.remove('hidden');
+    };
+    
+    imgElement.src = `/api/get_screenshot?filename=${encodeURIComponent(filename)}`;
+}
+
+async function deleteCurrentScreenshot() {
+    if (!currentScreenshot) return;
+    
+    if (!confirm(`Are you sure you want to delete "${currentScreenshot}"?`)) {
+        return;
+    }
+    
+    const deleteBtn = document.getElementById('delete-screenshot-btn');
+    deleteBtn.disabled = true;
+    deleteBtn.textContent = 'Deleting...';
+    
+    try {
+        showStatus('screenshot-task-status', 'Deleting screenshot...', 'loading');
+        
+        await apiCall('/api/delete_screenshot', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({filename: currentScreenshot})
+        });
+        
+        showStatus('screenshot-task-status', 'Screenshot deleted successfully!', 'success');
+        
+        // Go back to screenshots list
+        setTimeout(() => {
+            showScreenshots();
+        }, 1000);
+        
+    } catch (error) {
+        showStatus('screenshot-task-status', `Delete failed: ${error.message}`, 'error');
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = 'Delete Screenshot';
+    }
+}
+
+async function deleteAllScreenshots() {
+    if (!confirm('Are you sure you want to delete ALL screenshots? This cannot be undone!')) {
+        return;
+    }
+    
+    const deleteBtn = document.getElementById('delete-all-screenshots-btn');
+    deleteBtn.disabled = true;
+    deleteBtn.textContent = 'Deleting All...';
+    
+    try {
+        showStatus('screenshots-task-status', 'Deleting all screenshots...', 'loading');
+        
+        const result = await apiCall('/api/delete_all_screenshots', { method: 'POST' });
+        
+        showStatus('screenshots-task-status', `Deleted ${result.deleted_files.length} screenshots successfully!`, 'success');
+        
+        // Reload screenshots list
+        await loadScreenshots();
+        
+        setTimeout(() => hideStatus('screenshots-task-status'), 3000);
+        
+    } catch (error) {
+        showStatus('screenshots-task-status', `Delete failed: ${error.message}`, 'error');
+    } finally {
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = 'Delete All Screenshots';
+    }
+}
+
 // Handle browser back/forward buttons
 window.addEventListener('popstate', function(event) {
     if (event.state) {
         if (event.state.view === 'friend') {
             showFriendDetail(event.state.name);
+        } else if (event.state.view === 'screenshots') {
+            showScreenshots();
+        } else if (event.state.view === 'screenshot') {
+            showScreenshotDetail(event.state.filename);
         } else {
             showFriendsList();
         }
@@ -285,10 +437,11 @@ window.addEventListener('popstate', function(event) {
     }
 });
 
-// Handle direct URL access to friend pages
+// Handle direct URL access to pages
 function handleInitialUrl() {
     const path = window.location.pathname;
     const friendMatch = path.match(/^\/friends\/(.+)$/);
+    const screenshotMatch = path.match(/^\/screenshots\/(.+)$/);
     
     if (friendMatch) {
         const friendName = decodeURIComponent(friendMatch[1]);
@@ -296,6 +449,11 @@ function handleInitialUrl() {
         loadFriends().then(() => {
             showFriendDetail(friendName);
         });
+    } else if (screenshotMatch) {
+        const filename = decodeURIComponent(screenshotMatch[1]);
+        showScreenshotDetail(filename);
+    } else if (path === '/screenshots') {
+        showScreenshots();
     } else {
         loadFriends();
     }
