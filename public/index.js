@@ -312,8 +312,8 @@ async function updateFriendSelectedStatus() {
         const selectBtn = document.getElementById('select-friend-btn');
         const screenshotBtn = document.getElementById('take-screenshot-btn');
         
-        selectBtn.textContent = isSelected ? 'Already Selected' : 'Select Friend';
-        selectBtn.disabled = isSelected;
+        selectBtn.textContent = isSelected ? 'Re-select Friend' : 'Select Friend';
+        selectBtn.disabled = false; // Never disable - allow re-selection
         
         // Disable screenshot button if friend is not selected
         screenshotBtn.disabled = !isSelected;
