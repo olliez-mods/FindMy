@@ -482,13 +482,12 @@ window.addEventListener('popstate', function(event) {
 async function handleInitialUrl() {
     // Always load friends list on page load/reload
     try {
+        // Force URL to home immediately
+        window.history.replaceState({view: 'friends'}, '', '/');
         await loadFriends();
-        // Update URL to home if it's not already there
-        if (window.location.pathname !== '/') {
-            window.history.replaceState({view: 'friends'}, '', '/');
-        }
     } catch (error) {
         console.error('Error loading friends:', error);
+        window.history.replaceState({view: 'friends'}, '', '/');
         document.getElementById('friends-container').innerHTML = 
             '<div class="status error">Failed to load application. Please refresh the page.</div>';
     }
