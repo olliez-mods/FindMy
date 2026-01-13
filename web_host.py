@@ -117,7 +117,7 @@ def get_arg_or_param(name: str, default=None, type=None):
 
 def check_token():
   token = get_arg_or_param("token", type=str)
-  if(findmy.config.get("api_token") and token != findmy.config["api_token"]): return False
+  if(findmy.config.get("access_token") and token != findmy.config["access_token"]): return False
   return True
 
 @app.route('/')
