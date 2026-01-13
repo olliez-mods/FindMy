@@ -12,7 +12,6 @@ from findmy import FindMy
 
 app = Flask(__name__)
 findmy = FindMy()
-tasks:dict[str, 'Task'] = {}
 
 PORT = 5050
 PUBLIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public')
@@ -24,6 +23,7 @@ class TaskStatus(Enum):
   COMPLETED = 'completed'
   FAILED = 'failed'
 class Task:
+  tasks:dict[str, 'Task'] = {}
   def __init__(self, task_function, *args, **kwargs):
     self.task_id = str(uuid.uuid4()) # Generate unique task ID
     self.task_function = task_function
@@ -71,7 +71,7 @@ class Task:
     if(self.status == TaskStatus.COMPLETED): return {"status": self.status.value, "message": "Task completed", "result": self.result}, 200
     if(self.status == TaskStatus.FAILED): return {"status": self.status.value, "message": "Task failed", "error": self.error}, 500
   @staticmethod
-  def get_request_return(task_id: str|None, wait_for_result:bool = True, step_interval:float = 0.2) -> tuple[dict, int]:
+  def get_task_result(task_id: str|None, wait_for_result:bool = True, step_interval:float = 0.2) -> tuple[dict, int]:
     if(not task_id): return {"error": "task_id parameter is required"}, 400
     task = Task.get_task(task_id)
     if not task: return {"error": "Task not found"}, 404
@@ -79,16 +79,18 @@ class Task:
   @staticmethod
   def create_task(task_function, *args, **kwargs) -> 'Task':
     task = Task(task_function, *args, **kwargs)
-    tasks[task.task_id] = task
+    Task.tasks[task.task_id] = task
+    print(f"Created task {task.task_id} - Total tasks: {len(Task.tasks)}")  # Debug
     return task
   @staticmethod
   def get_task(task_id: str) -> 'Task | None':
-    return tasks.get(task_id, None)
+    print(f"Looking for task {task_id} - Available tasks: {list(Task.tasks.keys())}")  # Debug
+    return Task.tasks.get(task_id, None)
   @staticmethod
   def cleanup_old_tasks(max_age_seconds: int = 43200): # Older than 12 hours
     current_time = time.time()
-    to_delete = [task_id for task_id, task in tasks.items() if (current_time - task.created_at) > max_age_seconds]
-    for task_id in to_delete: del tasks[task_id]
+    to_delete = [task_id for task_id, task in Task.tasks.items() if (current_time - task.created_at) > max_age_seconds]
+    for task_id in to_delete: del Task.tasks[task_id]
 
 def get_arg_or_param(name: str, default=None, type=None):
   """Get value from request headers, URL parameters, or JSON body"""
@@ -145,13 +147,13 @@ def api_friends_list():
 @app.route('/api/task_wait', methods=['GET','POST'])
 def api_sync_wait():
   task_id = get_arg_or_param("task_id", type=str)
-  return Task.get_request_return(task_id)
+  return Task.get_task_result(task_id)
 
 @app.route('/api/tasks', methods=['GET'])
 def api_list_tasks():
   """List all tasks (useful for debugging)"""
   task_list = []
-  for task in tasks.values():
+  for task in Task.tasks.values():
     task_list.append({
       "id": task.task_id,
       "status": task.status.value,

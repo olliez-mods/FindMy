@@ -56,6 +56,7 @@ class FindMy:
     self.selected_friend:str = None
     self.currently_selected_friend:str|None = None
     self.config = DEFAULT_CONFIG.copy()
+    self.last_sync = None
     self.load_config()
   
   # Mouse controls
