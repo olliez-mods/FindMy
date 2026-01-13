@@ -139,6 +139,30 @@ async function waitForTask(taskId, maxWaitTime = 30) {
     throw new Error('Task timed out');
 }
 
+function updateFavoriteButton() {
+    const favoriteBtn = document.getElementById('favorite-btn');
+    if (!currentFriend) return;
+    
+    const isFav = isFavorite(currentFriend.name);
+    
+    if (isFav) {
+        favoriteBtn.textContent = 'Remove from Favorites';
+        favoriteBtn.style.backgroundColor = '#dc3545';
+        favoriteBtn.style.color = 'white';
+    } else {
+        favoriteBtn.textContent = 'Add to Favorites';
+        favoriteBtn.style.backgroundColor = '#ffc107';
+        favoriteBtn.style.color = 'black';
+    }
+}
+
+function toggleCurrentFavorite() {
+    if (!currentFriend) return;
+    
+    toggleFavorite(currentFriend.name);
+    updateFavoriteButton();
+}
+
 // Main functions
 async function loadFriends() {
     try {
@@ -283,28 +307,6 @@ function showFriendsList() {
     
     currentFriend = null;
     currentScreenshot = null;
-}
-
-function updateFavoriteButton() {
-    const favoriteBtn = document.getElementById('favorite-btn');
-    const isFav = isFavorite(currentFriend.name);
-    
-    if (isFav) {
-        favoriteBtn.textContent = 'Remove from Favorites';
-        favoriteBtn.style.backgroundColor = '#dc3545';
-        favoriteBtn.style.color = 'white';
-    } else {
-        favoriteBtn.textContent = 'Add to Favorites';
-        favoriteBtn.style.backgroundColor = '#ffc107';
-        favoriteBtn.style.color = 'black';
-    }
-}
-
-function toggleCurrentFavorite() {
-    if (!currentFriend) return;
-    
-    toggleFavorite(currentFriend.name);
-    updateFavoriteButton();
 }
 
 async function updateFriendSelectedStatus() {
