@@ -430,6 +430,56 @@ async function deleteCurrentScreenshot() {
     }
 }
 
+async function screenshotAllFriends() {
+    const screenshotBtn = document.getElementById('screenshot-all-btn');
+    screenshotBtn.disabled = true;
+    screenshotBtn.textContent = 'Taking Screenshots...';
+    
+    try {
+        showStatus('screenshots-task-status', 'Starting to take screenshots of all friends...', 'loading');
+        
+        // Start the async task
+        const startResult = await apiCall('/api/screenshot_all', { method: 'POST' });
+        
+        showStatus('screenshots-task-status', startResult.message + ' (This may take a few minutes)', 'loading');
+        
+        // Wait for task completion
+        const result = await waitForTask(startResult.task_id);
+        
+        if (result.status === 'completed') {
+            const results = result.result;
+            const successful = Object.keys(results).filter(name => results[name].error === null).length;
+            const failed = Object.keys(results).length - successful;
+            
+            let message = `Screenshots completed! ${successful} successful`;
+            if (failed > 0) {
+                message += `, ${failed} failed`;
+            }
+            
+            showStatus('screenshots-task-status', message, 'success');
+            
+            // Show details of failed screenshots
+            if (failed > 0) {
+                const failedFriends = Object.keys(results).filter(name => results[name].error !== null);
+                console.log('Failed screenshots:', failedFriends.map(name => `${name}: ${results[name].error}`));
+            }
+        } else {
+            showStatus('screenshots-task-status', `Screenshot task failed: ${result.error}`, 'error');
+        }
+        
+        // Reload screenshots list to show new screenshots
+        await loadScreenshots();
+        
+        setTimeout(() => hideStatus('screenshots-task-status'), 5000);
+        
+    } catch (error) {
+        showStatus('screenshots-task-status', `Screenshot all failed: ${error.message}`, 'error');
+    } finally {
+        screenshotBtn.disabled = false;
+        screenshotBtn.textContent = 'Screenshot All Friends';
+    }
+}
+
 async function deleteAllScreenshots() {
     if (!confirm('Are you sure you want to delete ALL screenshots? This cannot be undone!')) {
         return;

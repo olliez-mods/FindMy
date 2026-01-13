@@ -165,6 +165,25 @@ def api_sync():
   task_id = task.run_async(30) # 30 second timeout
   return jsonify({"message": "Index sync started", "task_id": task_id})
 
+@app.route('/api/screenshot_all', methods=['GET','POST'])
+def api_screenshot_all():
+  def screenshot_all_friends():
+    friends = findmy.get_all_friends()
+    results = {}
+    for friend in friends:
+      try:
+        r = findmy.click_friend(friend.name)
+        if(not r): raise Exception("Failed to select friend")
+        screenshot_path = findmy.screenshot_map()
+        results[friend.name] = {"screenshot": screenshot_path, "error": None}
+      except Exception as e:
+        results[friend.name] = {"screenshot": None, "error": str(e)}
+    return results
+
+  task = Task.create_task(screenshot_all_friends)
+  task_id = task.run_async(120) # 2 minute timeout
+  return jsonify({"message": "Taking screenshots of all friends", "task_id": task_id})
+
 @app.route('/api/select_friend', methods=['GET','POST'])
 def api_select_friend():
   name = get_arg_or_param("name", type=str)
