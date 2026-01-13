@@ -127,6 +127,11 @@ def friend_page(friend_name):
 def screenshots_page():
   return send_from_directory(PUBLIC_DIR, 'index.html')
 
+# Serve static files first (before screenshots route that catches filenames)
+@app.route('/index.js')
+def serve_js():
+  return send_from_directory(PUBLIC_DIR, 'index.js', mimetype='application/javascript')
+
 @app.route('/screenshots/<path:filename>')
 def screenshot_page(filename):
   return send_from_directory(PUBLIC_DIR, 'index.html')
