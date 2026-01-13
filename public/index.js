@@ -471,29 +471,12 @@ async function deleteAllScreenshots() {
     }
 }
 
-// Handle browser back/forward buttons - always go to home
-window.addEventListener('popstate', function(event) {
-    // Always go back to friends list
-    window.history.replaceState({view: 'friends'}, '', '/');
-    showFriendsList();
-});
-
-// Handle page load - always go to home
-async function handleInitialUrl() {
-    // Always load friends list on page load/reload
-    try {
-        // Force URL to home immediately
-        window.history.replaceState({view: 'friends'}, '', '/');
-        await loadFriends();
-    } catch (error) {
-        console.error('Error loading friends:', error);
-        window.history.replaceState({view: 'friends'}, '', '/');
-        document.getElementById('friends-container').innerHTML = 
-            '<div class="status error">Failed to load application. Please refresh the page.</div>';
-    }
-}
-
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
-    handleInitialUrl();
+    loadFriends();
 });
+
+// Simple home button function
+function goHome() {
+    showFriendsList();
+}
