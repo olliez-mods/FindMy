@@ -191,6 +191,7 @@ function showFriendDetail(friendName) {
 function showFriendsList() {
     // Update URL
     window.history.pushState({view: 'friends'}, '', '/');
+    window.url.location.pathname = '/';
     
     // Switch views
     document.getElementById('friend-detail-view').classList.add('hidden');
