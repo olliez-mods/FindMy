@@ -54,10 +54,7 @@
 <body>
     <!-- Main Friends List View -->
     <div id="friends-view">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>FindMy Friends</h1>
-            <button onclick="goHome()" style="background-color: #007bff; color: white;">🏠 Home</button>
-        </div>
+        <h1>FindMy Friends</h1>
         
         <div id="status-info" class="status">
             <div>Last sync: <span id="last-sync">Loading...</span></div>
@@ -77,10 +74,7 @@
 
     <!-- Friend Detail View -->
     <div id="friend-detail-view" class="hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <button class="back-btn" onclick="showFriendsList()">← Back to Friends</button>
-            <button onclick="goHome()" style="background-color: #007bff; color: white;">🏠 Home</button>
-        </div>
+        <button class="back-btn" onclick="showFriendsList()">← Back to Friends</button>
         
         <h2 id="friend-name">Friend Name</h2>
         
@@ -103,10 +97,7 @@
 
     <!-- Screenshots View -->
     <div id="screenshots-view" class="hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <button class="back-btn" onclick="showFriendsList()">← Back to Friends</button>
-            <button onclick="goHome()" style="background-color: #007bff; color: white;">🏠 Home</button>
-        </div>
+        <button class="back-btn" onclick="showFriendsList()">← Back to Friends</button>
         
         <h2>Screenshots</h2>
         
@@ -121,10 +112,7 @@
 
     <!-- Screenshot Detail View -->
     <div id="screenshot-detail-view" class="hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <button class="back-btn" onclick="showScreenshots()">← Back to Screenshots</button>
-            <button onclick="goHome()" style="background-color: #007bff; color: white;">🏠 Home</button>
-        </div>
+        <button class="back-btn" onclick="showScreenshots()">← Back to Screenshots</button>
         
         <h2 id="screenshot-name">Screenshot</h2>
         

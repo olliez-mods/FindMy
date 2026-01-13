@@ -119,22 +119,9 @@ def get_arg_or_param(name: str, default=None, type=None):
 def index():
   return send_from_directory(PUBLIC_DIR, 'index.html')
 
-@app.route('/friends/<path:friend_name>')
-def friend_page(friend_name):
-  return send_from_directory(PUBLIC_DIR, 'index.html')
-
-@app.route('/screenshots')
-def screenshots_page():
-  return send_from_directory(PUBLIC_DIR, 'index.html')
-
-# Serve static files first (before screenshots route that catches filenames)
 @app.route('/index.js')
 def serve_js():
   return send_from_directory(PUBLIC_DIR, 'index.js', mimetype='application/javascript')
-
-@app.route('/screenshots/<path:filename>')
-def screenshot_page(filename):
-  return send_from_directory(PUBLIC_DIR, 'index.html')
 
 @app.route('/api/friends_list', methods=['GET','POST'])
 def api_friends_list():

@@ -166,9 +166,6 @@ function showFriendDetail(friendName) {
         return;
     }
     
-    // Update URL without page reload
-    window.history.pushState({view: 'friend', name: friendName}, '', `/friends/${encodeURIComponent(friendName)}`);
-    
     // Switch views
     document.getElementById('friends-view').classList.add('hidden');
     document.getElementById('screenshots-view').classList.add('hidden');
@@ -189,8 +186,14 @@ function showFriendDetail(friendName) {
 }
 
 function showFriendsList() {
-    // Update URL
-    window.location.href = '/';
+    // Switch views
+    document.getElementById('friend-detail-view').classList.add('hidden');
+    document.getElementById('screenshots-view').classList.add('hidden');
+    document.getElementById('screenshot-detail-view').classList.add('hidden');
+    document.getElementById('friends-view').classList.remove('hidden');
+    
+    currentFriend = null;
+    currentScreenshot = null;
 }
 
 async function updateFriendSelectedStatus() {
@@ -334,9 +337,6 @@ function renderScreenshotsList() {
 }
 
 function showScreenshots() {
-    // Update URL
-    window.history.pushState({view: 'screenshots'}, '', '/screenshots');
-    
     // Switch views
     document.getElementById('friends-view').classList.add('hidden');
     document.getElementById('friend-detail-view').classList.add('hidden');
@@ -371,9 +371,6 @@ async function showScreenshotDetail(filename) {
         showScreenshots();
         return;
     }
-    
-    // Update URL
-    window.history.pushState({view: 'screenshot', filename: filename}, '', `/screenshots/${encodeURIComponent(filename)}`);
     
     // Switch views
     document.getElementById('screenshots-view').classList.add('hidden');
@@ -464,15 +461,5 @@ async function deleteAllScreenshots() {
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
-    // Force redirect to home immediately
-    if (window.location.pathname !== '/') {
-        window.location.href = '/';
-        return;
-    }
     loadFriends();
 });
-
-// Simple home button function
-function goHome() {
-    window.location.href = '/';
-}
