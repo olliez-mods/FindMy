@@ -4,6 +4,30 @@ let currentScreenshot = null;
 let friendsData = [];
 let screenshotsData = [];
 
+// Token management
+function getToken() {
+    return localStorage.getItem('findmy-token');
+}
+
+function setToken(token) {
+    localStorage.setItem('findmy-token', token);
+}
+
+function clearToken() {
+    localStorage.removeItem('findmy-token');
+}
+
+function ensureToken() {
+    let token = getToken();
+    if (!token) {
+        token = prompt('Enter access token:');
+        if (token) {
+            setToken(token);
+        }
+    }
+    return token;
+}
+
 // Favorites functions
 function getFavorites() {
     try {
@@ -107,9 +131,24 @@ function timeAgo(timestamp) {
 
 // API functions
 async function apiCall(url, options = {}) {
+    const token = ensureToken();
+    if (!token) throw new Error('Token required');
+    
+    // Add token as URL parameter
+    const urlObj = new URL(url, window.location.origin);
+    urlObj.searchParams.set('token', token);
+    
     try {
-        const response = await fetch(url, options);
+        const response = await fetch(urlObj.toString(), options);
         const data = await response.json();
+        
+        // Handle invalid token
+        if (response.status === 401 || response.status === 403) {
+            clearToken();
+            alert('Invalid token. Please enter a new one.');
+            return apiCall(url, options); // Retry with new token
+        }
+        
         if (!response.ok) {
             throw new Error(data.error || `HTTP ${response.status}`);
         }

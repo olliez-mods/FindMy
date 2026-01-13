@@ -115,6 +115,11 @@ def get_arg_or_param(name: str, default=None, type=None):
       value = default  # Handle conversion errors, use default
   return value
 
+def check_token():
+  token = get_arg_or_param("token", type=str)
+  if(findmy.config.get("api_token") and token != findmy.config["api_token"]): return False
+  return True
+
 @app.route('/')
 def index():
   return send_from_directory(PUBLIC_DIR, 'index.html')
@@ -125,6 +130,7 @@ def serve_js():
 
 @app.route('/api/friends_list', methods=['GET','POST'])
 def api_friends_list():
+  if(not check_token()): return jsonify({"error": "Invalid API token"}), 403
   friends = findmy.get_all_friends()
   result = {
     "last_sync": findmy.last_sync,
@@ -141,11 +147,13 @@ def api_friends_list():
 
 @app.route('/api/task_wait', methods=['GET','POST'])
 def api_sync_wait():
+  if(not check_token()): return jsonify({"error": "Invalid API token"}), 403
   task_id = get_arg_or_param("task_id", type=str)
   return Task.get_task_result(task_id)
 
 @app.route('/api/tasks', methods=['GET'])
 def api_list_tasks():
+  if(not check_token()): return jsonify({"error": "Invalid API token"}), 403
   """List all tasks (useful for debugging)"""
   task_list = []
   for task in Task.tasks.values():
@@ -161,6 +169,7 @@ def api_list_tasks():
 
 @app.route('/api/sync', methods=['GET','POST'])
 def api_sync():
+  if(not check_token()): return jsonify({"error": "Invalid API token"}), 403
   Task.cleanup_old_tasks() # Just put it here for convenience
   task = Task.create_task(findmy.build_index)
   task_id = task.run_async(30) # 30 second timeout
@@ -168,6 +177,7 @@ def api_sync():
 
 @app.route('/api/screenshot_all', methods=['GET','POST'])
 def api_screenshot_all():
+  if(not check_token()): return jsonify({"error": "Invalid API token"}), 403
   def screenshot_all_friends():
     friends = findmy.get_all_friends()
     results = {}
@@ -187,6 +197,7 @@ def api_screenshot_all():
 
 @app.route('/api/select_friend', methods=['GET','POST'])
 def api_select_friend():
+  if(not check_token()): return jsonify({"error": "Invalid API token"}), 403
   name = get_arg_or_param("name", type=str)
   if(not name): return jsonify({"error": "name parameter is required"}), 400
   friend = findmy.find_friend(name)
@@ -198,12 +209,14 @@ def api_select_friend():
 
 @app.route('/api/take_screenshot', methods=['GET','POST'])
 def api_take_screenshot():
+  if(not check_token()): return jsonify({"error": "Invalid API token"}), 403
   task = Task.create_task(findmy.screenshot_map)
   task_id = task.run_async(5) # 5 second timeout
   return jsonify({"message": "Taking screenshot", "task_id": task_id})
 
 @app.route('/api/get_screenshot', methods=['GET','POST'])
 def api_get_screenshot():
+  if(not check_token()): return jsonify({"error": "Invalid API token"}), 403
   filename = get_arg_or_param("filename", type=str)
   if(not filename): return jsonify({"error": "filename parameter is required"}), 400
   screenshot_path = os.path.join(findmy.config["screenshot_dir"], filename)
@@ -212,6 +225,7 @@ def api_get_screenshot():
 
 @app.route('/api/list_screenshots', methods=['GET','POST'])
 def api_list_screenshots():
+  if(not check_token()): return jsonify({"error": "Invalid API token"}), 403
   try:
     screenshot_dir = findmy.config["screenshot_dir"]
     screenshots = []
@@ -223,6 +237,7 @@ def api_list_screenshots():
 
 @app.route('/api/delete_screenshot', methods=['GET','POST'])
 def api_delete_screenshot():
+  if(not check_token()): return jsonify({"error": "Invalid API token"}), 403
   try:
     filename = get_arg_or_param("filename", type=str)
     if(not filename): return jsonify({"error": "filename parameter is required"}), 400
@@ -234,6 +249,7 @@ def api_delete_screenshot():
 
 @app.route('/api/delete_all_screenshots', methods=['GET','POST'])
 def api_delete_all_screenshots():
+  if(not check_token()): return jsonify({"error": "Invalid API token"}), 403
   try:
     screenshot_dir = findmy.config["screenshot_dir"]
     deleted_files = []

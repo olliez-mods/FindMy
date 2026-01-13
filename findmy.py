@@ -22,6 +22,7 @@ DEFAULT_CONFIG = {
     "people_button": None,  # (x, y)
     "index_stale_time": 14400,  # 4 hours
     "ocr_language": "eng",
+    "access_token": None,
     "map_load_delay": 4.0,
     "screenshot_dir": "screenshots",
     "filename_format": "{name}_{timestamp}.png"
@@ -88,6 +89,7 @@ class FindMy:
     time.sleep(1.0)  # Wait a bit for UI to update
 
     self.friends_index.clear()
+    self.currently_selected_friend = None
     seen_names = set()
     scroll_count = 0 # We keep track so we can replay the scrolls later
     scrolls_without_new_names = 0 # To detect end of list
@@ -361,6 +363,8 @@ if __name__ == "__main__":
   if screenshot_dir.strip() == "": screenshot_dir = "screenshots"
   filename_format = input("Enter filename format (use {name} and {timestamp}, default '{name}_{timestamp}.png'): ")
   if filename_format.strip() == "": filename_format = "{name}_{timestamp}.png"
+  access_token = input("Enter the token to access Find My (leave blank to skip): ")
+  if(not access_token): access_token = None
 
   # Setup bounds by having user click corners of regions, we detect mouse down and log positions
   print("\nYou will now layout the regions needed to proccess the Find My app.")
@@ -430,6 +434,7 @@ if __name__ == "__main__":
     "people_button": (people_btn_pos.x, people_btn_pos.y),
     "index_stale_time": hours_stale * 3600,
     "ocr_language": "eng",
+    "access_token": access_token,
     "map_load_delay": map_delay,
     "screenshot_dir": screenshot_dir,
     "filename_format": filename_format
