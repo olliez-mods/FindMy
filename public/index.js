@@ -190,17 +190,7 @@ function showFriendDetail(friendName) {
 
 function showFriendsList() {
     // Update URL
-    window.history.pushState({view: 'friends'}, '', '/');
-    window.url.location.pathname = '/';
-    
-    // Switch views
-    document.getElementById('friend-detail-view').classList.add('hidden');
-    document.getElementById('screenshots-view').classList.add('hidden');
-    document.getElementById('screenshot-detail-view').classList.add('hidden');
-    document.getElementById('friends-view').classList.remove('hidden');
-    
-    currentFriend = null;
-    currentScreenshot = null;
+    window.location.href = '/';
 }
 
 async function updateFriendSelectedStatus() {
@@ -484,6 +474,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Simple home button function
 function goHome() {
-    window.history.pushState({view: 'friends'}, '', '/');
-    showFriendsList();
+    window.location.href = '/';
 }
