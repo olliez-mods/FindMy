@@ -205,18 +205,12 @@ function renderFriendsList() {
         return;
     }
 
-    // Sort friends: favorites first, then preserve original order (by distance from FindMy)
-    const sortedFriends = [...friendsData].sort((a, b) => {
-        const aIsFav = isFavorite(a.name);
-        const bIsFav = isFavorite(b.name);
-        
-        // Favorites go first, otherwise maintain original order
-        if (aIsFav && !bIsFav) return -1;
-        if (!aIsFav && bIsFav) return 1;
-        
-        // Keep original order (no alphabetical sorting)
-        return 0;
-    });
+    // Separate favorites from non-favorites while preserving original order
+    const favorites = friendsData.filter(friend => isFavorite(friend.name));
+    const nonFavorites = friendsData.filter(friend => !isFavorite(friend.name));
+    
+    // Concatenate: favorites first, then non-favorites (both in original order)
+    const sortedFriends = [...favorites, ...nonFavorites];
 
     const selectedFriend = document.getElementById('selected-friend').textContent;
     
