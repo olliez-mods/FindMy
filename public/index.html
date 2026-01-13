@@ -49,24 +49,13 @@
         .back-btn { 
             margin-bottom: 20px; 
         }
-        .star {
-            cursor: pointer;
-            font-size: 24px;
-            margin-right: 10px;
-            user-select: none;
-            transition: color 0.2s;
-            display: inline-block;
-            font-weight: bold;
+        .friend-item.favorite {
+            background-color: #fff3cd;
+            border-color: #ffc107;
         }
-        .star.favorited {
-            color: #ffd700;
-        }
-        .star.unfavorited {
-            color: #ddd;
-        }
-        .star:hover {
-            color: #ffed4e;
-            transform: scale(1.1);
+        .friend-item.selected {
+            border-color: #28a745;
+            border-width: 2px;
         }
     </style>
 </head>
@@ -104,6 +93,7 @@
 
         <button id="select-friend-btn" onclick="selectCurrentFriend()">Select Friend</button>
         <button id="take-screenshot-btn" onclick="takeScreenshot()">Take Screenshot</button>
+        <button id="favorite-btn" onclick="toggleCurrentFavorite()" style="background-color: #ffc107; color: black;">Add to Favorites</button>
 
         <div id="friend-task-status" class="status hidden"></div>
 

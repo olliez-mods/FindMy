@@ -259,15 +259,20 @@ function renderFriendsList() {
         return a.name.localeCompare(b.name);
     });
 
+    const selectedFriend = document.getElementById('selected-friend').textContent;
+    
     container.innerHTML = sortedFriends.map(friend => {
-        const isSelected = friend.name === document.getElementById('selected-friend').textContent;
+        const isSelected = friend.name === selectedFriend;
+        const isFav = isFavorite(friend.name);
         const selectedIndicator = isSelected ? ' ✓ ' : '';
-        const favorited = isFavorite(friend.name);
-        const starClass = favorited ? 'favorited' : 'unfavorited';
+        
+        let classes = 'friend-item';
+        if (isFav) classes += ' favorite';
+        if (isSelected) classes += ' selected';
         
         return `
-            <div class="friend-item" onclick="showFriendDetail('${friend.name}')">
-                <span class="star ${starClass}" onclick="event.stopPropagation(); toggleFavorite('${friend.name.replace(/'/g, "\\'")}')">★</span><strong>${selectedIndicator}${friend.name}</strong><br>
+            <div class="${classes}" onclick="showFriendDetail('${friend.name}')">
+                <strong>${selectedIndicator}${friend.name}</strong><br>
                 <small>Last screenshot: ${friend.last_screenshot_time ? timeAgo(friend.last_screenshot_time) : 'Never'}</small>
             </div>
         `;
@@ -324,11 +329,36 @@ function showFriendDetail(friendName) {
     document.getElementById('friend-last-screenshot').textContent = 
         currentFriend.last_screenshot_time ? formatTime(currentFriend.last_screenshot_time) : 'Never';
     
+    // Update favorite button
+    updateFavoriteButton();
+    
     // Load screenshot if available
     loadFriendScreenshot();
     
     // Update selected status
     updateFriendSelectedStatus();
+}
+
+function updateFavoriteButton() {
+    const favoriteBtn = document.getElementById('favorite-btn');
+    const isFav = isFavorite(currentFriend.name);
+    
+    if (isFav) {
+        favoriteBtn.textContent = 'Remove from Favorites';
+        favoriteBtn.style.backgroundColor = '#dc3545';
+        favoriteBtn.style.color = 'white';
+    } else {
+        favoriteBtn.textContent = 'Add to Favorites';
+        favoriteBtn.style.backgroundColor = '#ffc107';
+        favoriteBtn.style.color = 'black';
+    }
+}
+
+function toggleCurrentFavorite() {
+    if (!currentFriend) return;
+    
+    toggleFavorite(currentFriend.name);
+    updateFavoriteButton();
 }
 
 function showFriendsList() {
