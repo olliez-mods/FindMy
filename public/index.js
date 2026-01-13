@@ -372,8 +372,9 @@ async function loadFriendScreenshot() {
     
     if (currentFriend.last_screenshot) {
         try {
-            // Check if screenshot file exists by trying to load it
-            imgElement.src = `/api/get_screenshot?filename=${currentFriend.last_screenshot}`;
+            const token = getToken();
+            // Add token to screenshot URL
+            imgElement.src = `/api/get_screenshot?filename=${currentFriend.last_screenshot}&token=${token}`;
             imgElement.style.display = 'block';
             noScreenshotElement.style.display = 'none';
         } catch (error) {
@@ -544,7 +545,7 @@ async function showScreenshotDetail(filename) {
         errorElement.classList.remove('hidden');
     };
     
-    imgElement.src = `/api/get_screenshot?filename=${encodeURIComponent(filename)}`;
+    imgElement.src = `/api/get_screenshot?filename=${encodeURIComponent(filename)}&token=${getToken()}`;
 }
 
 async function deleteCurrentScreenshot() {
