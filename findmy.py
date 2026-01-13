@@ -82,6 +82,7 @@ class FindMy:
     print(f"Saved metadata for {len(saved_friends_data)} existing friends")
     
     self.scroll_to_top()
+    pyautogui.click(self.config["map_region"][0] + 50, self.config["map_region"][1] + 50)  # Click map to defocus list
 
     self.friends_index.clear()
     seen_names = set()
