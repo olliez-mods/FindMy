@@ -131,11 +131,6 @@ def screenshots_page():
 def screenshot_page(filename):
   return send_from_directory(PUBLIC_DIR, 'index.html')
 
-@app.route('/<path:path>')
-def serve_static(path):
-  try: return send_from_directory(PUBLIC_DIR, path)
-  except: return "Not Found", 404
-
 @app.route('/api/friends_list', methods=['GET','POST'])
 def api_friends_list():
   friends = findmy.get_all_friends()
@@ -237,6 +232,11 @@ def api_delete_all_screenshots():
         deleted_files.append(filename)
     return jsonify({"message": f"Deleted {len(deleted_files)} screenshots", "deleted_files": deleted_files})
   except Exception as e: return jsonify({"error": str(e)}), 500
+
+@app.route('/<path:path>')
+def serve_static(path):
+  try: return send_from_directory(PUBLIC_DIR, path)
+  except: return "Not Found", 404
 
 if __name__ == '__main__':
   findmy.load_index() # Load existing index on startup if available
