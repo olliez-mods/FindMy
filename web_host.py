@@ -231,5 +231,6 @@ def api_delete_all_screenshots():
   except Exception as e: return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
+  findmy.load_index() # Load existing index on startup if available
   app.run(host='0.0.0.0', port=PORT)
   print(f"Web host running on port {PORT}")

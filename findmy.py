@@ -133,6 +133,21 @@ class FindMy:
     self.save_index()
     print(f"Indexed {len(self.friends_index)} friends at {self.last_sync}")
 
+  def load_index(self) -> bool:
+    if os.path.exists(CACHE_FILE):
+      with open(CACHE_FILE, "r") as f:
+        cache_data:dict = json.load(f)
+        if(not cache_data or "friends_index" not in cache_data):
+          print("No valid cache data found.")
+          return False
+        self.friends_index = { name: Friend.from_dict(friend_data) for name, friend_data in cache_data.get("friends_index", {}).items() }
+        self.last_sync = cache_data.get("last_sync", None)
+        print(f"Loaded index with {len(self.friends_index)} friends from cache.")
+        return True
+    else:
+      print("No cache file found.")
+      return False
+
   def click_friend(self, name:str, force_click=False):
     """Click on friend, with option to skip if already selected"""
     key = None
@@ -195,30 +210,23 @@ class FindMy:
     with open(CACHE_FILE, "w") as f: json.dump(cache_data, f, indent=2)
 
   def load_or_build_index(self):
-    # Try to load existing index
-    if os.path.exists(CACHE_FILE):
-      with open(CACHE_FILE, "r") as f:
-        cache_data:dict = json.load(f)
-        if(not cache_data or "friends_index" not in cache_data):
-          print("No valid cache data, rebuilding index...")
-          self.build_index()
-          return
-        self.friends_index = { name: Friend.from_dict(friend_data) for name, friend_data in cache_data.get("friends_index", {}).items() }
-        self.last_sync = cache_data.get("last_sync", None)
-        
-        if self.last_sync:
-          # Parse ISO format timestamp
-          from datetime import datetime
-          last_sync_time = datetime.fromisoformat(self.last_sync).timestamp()
-          current_time = time.time()
-          if (current_time - last_sync_time) > self.config["index_stale_time"]:
-            print("Index is stale, rebuilding...")
-            self.build_index()
-        else:
-          print("No valid timestamp, rebuilding index...")
-          self.build_index()
-    else:
+    res = self.load_index()
+    if not res:
+      print("Could not load index, building new one...")
       self.build_index()
+      return
+    if not self.last_sync:
+      print("No last sync timestamp, rebuilding index...")
+      self.build_index()
+      return
+    # Parse ISO format timestamp
+    last_sync_time = datetime.fromisoformat(self.last_sync).timestamp()
+    current_time = time.time()
+    if (current_time - last_sync_time) > self.config["index_stale_time"]:
+      print("Index is stale, rebuilding...")
+      self.build_index()
+      return
+    print("Index is fresh, no need to automaticly rebuild.")
   
   def load_config(self):
     if os.path.exists(CONFIG_FILE):
