@@ -162,6 +162,8 @@ function showFriendDetail(friendName) {
     currentFriend = friendsData.find(f => f.name === friendName);
     if (!currentFriend) {
         console.error(`Friend '${friendName}' not found in loaded data`);
+        // Update URL to match the redirect
+        window.history.replaceState({view: 'friends'}, '', '/');
         showFriendsList();
         return;
     }
@@ -368,7 +370,9 @@ async function showScreenshotDetail(filename) {
             await loadScreenshots();
         } catch (error) {
             console.error('Failed to load screenshots:', error);
-            showFriendsList();
+            // Update URL to match the redirect to screenshots list
+            window.history.replaceState({view: 'screenshots'}, '', '/screenshots');
+            showScreenshots();
             return;
         }
     }
@@ -377,6 +381,8 @@ async function showScreenshotDetail(filename) {
     const screenshotExists = screenshotsData.some(([name]) => name === filename);
     if (!screenshotExists) {
         console.error(`Screenshot '${filename}' not found`);
+        // Update URL to match the redirect
+        window.history.replaceState({view: 'screenshots'}, '', '/screenshots');
         showScreenshots();
         return;
     }
@@ -489,10 +495,14 @@ window.addEventListener('popstate', async function(event) {
                 showFriendsList();
             }
         } else {
+            // No state means we're at the root
+            window.history.replaceState({view: 'friends'}, '', '/');
             showFriendsList();
         }
     } catch (error) {
         console.error('Error handling browser navigation:', error);
+        // Update URL to match the redirect
+        window.history.replaceState({view: 'friends'}, '', '/');
         showFriendsList();
     }
 });
@@ -514,6 +524,8 @@ async function handleInitialUrl() {
                 showFriendDetail(friendName);
             } else {
                 console.warn(`Friend '${friendName}' not found, redirecting to friends list`);
+                // Update URL to match the redirect
+                window.history.replaceState({view: 'friends'}, '', '/');
                 showFriendsList();
             }
         } else if (screenshotMatch) {
@@ -528,7 +540,8 @@ async function handleInitialUrl() {
         }
     } catch (error) {
         console.error('Error handling initial URL:', error);
-        // Fallback to friends list on any error
+        // Fallback to friends list on any error and update URL
+        window.history.replaceState({view: 'friends'}, '', '/');
         try {
             await loadFriends();
         } catch (fallbackError) {
