@@ -267,8 +267,7 @@ function renderFriendsList() {
         
         return `
             <div class="friend-item" onclick="showFriendDetail('${friend.name}')">
-                <span class="star ${starClass}" onclick="event.stopPropagation(); toggleFavorite('${friend.name.replace(/'/g, "\\'")}')">★</span>
-                <strong>${selectedIndicator}${friend.name}</strong><br>
+                <span class="star ${starClass}" onclick="event.stopPropagation(); toggleFavorite('${friend.name.replace(/'/g, "\\'")}')">★</span><strong>${selectedIndicator}${friend.name}</strong><br>
                 <small>Last screenshot: ${friend.last_screenshot_time ? timeAgo(friend.last_screenshot_time) : 'Never'}</small>
             </div>
         `;

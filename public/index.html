@@ -51,19 +51,22 @@
         }
         .star {
             cursor: pointer;
-            font-size: 18px;
-            margin-right: 8px;
+            font-size: 24px;
+            margin-right: 10px;
             user-select: none;
             transition: color 0.2s;
+            display: inline-block;
+            font-weight: bold;
         }
         .star.favorited {
             color: #ffd700;
         }
         .star.unfavorited {
-            color: #ccc;
+            color: #ddd;
         }
         .star:hover {
             color: #ffed4e;
+            transform: scale(1.1);
         }
     </style>
 </head>
