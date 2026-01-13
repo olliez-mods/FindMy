@@ -19,6 +19,7 @@ CACHE_FILE = "friends_index.json"
 DEFAULT_CONFIG = {
     "friends_list_region": None,  # (left, top, width, height)
     "map_region": None,  # (left, top, width, height)
+    "people_button": None,  # (x, y)
     "index_stale_time": 14400,  # 4 hours
     "ocr_language": "eng",
     "map_load_delay": 4.0,
@@ -82,7 +83,9 @@ class FindMy:
     print(f"Saved metadata for {len(saved_friends_data)} existing friends")
     
     self.scroll_to_top()
-    pyautogui.click(self.config["map_region"][0] + 50, self.config["map_region"][1] + 50)  # Click map to defocus list
+    # Ensure no one is selected by clicking 'People' button
+    pyautogui.click(self.config["people_button"][0], self.config["people_button"][1])
+    time.sleep(1.0)  # Wait a bit for UI to update
 
     self.friends_index.clear()
     seen_names = set()
@@ -411,10 +414,20 @@ if __name__ == "__main__":
   map_img.save(os.path.join("setup_previews", "map_region.png"))
   print("Previews saved to 'setup_previews' folder. Please verify they are correct.\n")
 
+  print("Now we need to know the location of the 'People' button in the Find My app.")
+  print("This is to ensure the friends list is visible and no one is selected.")
+  print("Please click the 'People' button after switching to the Find My app window and waiting for 3 seconds.")
+  input("Press Enter to begin...")
+  time.sleep(3)
+  print("Waiting for click on 'People' button...")
+  people_btn_pos = get_next_click_position()
+  print(f"'People' button position recorded at ({people_btn_pos.x}, {people_btn_pos.y}).\n")
+
   # Save config
   config = {
     "friends_list_region": list_region,
     "map_region": map_region,
+    "people_button": (people_btn_pos.x, people_btn_pos.y),
     "index_stale_time": hours_stale * 3600,
     "ocr_language": "eng",
     "map_load_delay": map_delay,

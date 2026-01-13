@@ -161,6 +161,7 @@ def api_list_tasks():
 
 @app.route('/api/sync', methods=['GET','POST'])
 def api_sync():
+  Task.cleanup_old_tasks() # Just put it here for convenience
   task = Task.create_task(findmy.build_index)
   task_id = task.run_async(30) # 30 second timeout
   return jsonify({"message": "Index sync started", "task_id": task_id})
@@ -181,7 +182,7 @@ def api_screenshot_all():
     return results
 
   task = Task.create_task(screenshot_all_friends)
-  task_id = task.run_async(120) # 2 minute timeout
+  task_id = task.run_async(300) # 5 minute timeout
   return jsonify({"message": "Taking screenshots of all friends", "task_id": task_id})
 
 @app.route('/api/select_friend', methods=['GET','POST'])
