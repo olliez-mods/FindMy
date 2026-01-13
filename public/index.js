@@ -474,9 +474,10 @@ async function deleteAllScreenshots() {
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
-    // Force URL to home immediately
+    // Force redirect to home immediately
     if (window.location.pathname !== '/') {
-        window.history.replaceState({view: 'friends'}, '', '/');
+        window.location.href = '/';
+        return;
     }
     loadFriends();
 });
