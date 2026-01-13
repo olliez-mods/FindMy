@@ -4,6 +4,71 @@ let currentScreenshot = null;
 let friendsData = [];
 let screenshotsData = [];
 
+// Favorites functions
+function getFavorites() {
+    try {
+        const favorites = localStorage.getItem('findmy-favorites');
+        return favorites ? JSON.parse(favorites) : [];
+    } catch (e) {
+        console.error('Error loading favorites:', e);
+        return [];
+    }
+}
+
+function saveFavorites(favorites) {
+    try {
+        localStorage.setItem('findmy-favorites', JSON.stringify(favorites));
+    } catch (e) {
+        console.error('Error saving favorites:', e);
+    }
+}
+
+function calculateSimilarity(str1, str2) {
+    // Simple character-based similarity calculation
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+    
+    if (longer.length === 0) return 1.0;
+    
+    // Count matching characters in order
+    let matches = 0;
+    let shorterIndex = 0;
+    
+    for (let i = 0; i < longer.length && shorterIndex < shorter.length; i++) {
+        if (longer[i].toLowerCase() === shorter[shorterIndex].toLowerCase()) {
+            matches++;
+            shorterIndex++;
+        }
+    }
+    
+    return matches / longer.length;
+}
+
+function isFavorite(friendName) {
+    const favorites = getFavorites();
+    return favorites.some(fav => calculateSimilarity(fav, friendName) >= 0.8);
+}
+
+function toggleFavorite(friendName) {
+    let favorites = getFavorites();
+    
+    // Check if already favorited (with fuzzy matching)
+    const existingIndex = favorites.findIndex(fav => calculateSimilarity(fav, friendName) >= 0.8);
+    
+    if (existingIndex >= 0) {
+        // Remove from favorites
+        favorites.splice(existingIndex, 1);
+    } else {
+        // Add to favorites
+        favorites.push(friendName);
+    }
+    
+    saveFavorites(favorites);
+    
+    // Re-render the friends list to update star states and sorting
+    renderFriendsList();
+}
+
 // Utility functions
 function showStatus(elementId, message, type = 'loading') {
     const element = document.getElementById(elementId);
@@ -116,13 +181,32 @@ function renderFriendsList() {
         return;
     }
 
-    container.innerHTML = friendsData.map(friend => {
-        const isSelected = friendsData.find(f => f.name === document.getElementById('selected-friend').textContent);
-        const selectedIndicator = (friend.name === document.getElementById('selected-friend').textContent) ? ' ✓ ' : '';
+    // Sort friends: favorites first, then alphabetically
+    const sortedFriends = [...friendsData].sort((a, b) => {
+        const aIsFav = isFavorite(a.name);
+        const bIsFav = isFavorite(b.name);
+        
+        // Favorites go first
+        if (aIsFav && !bIsFav) return -1;
+        if (!aIsFav && bIsFav) return 1;
+        
+        // Then sort alphabetically
+        return a.name.localeCompare(b.name);
+    });
+
+    container.innerHTML = sortedFriends.map(friend => {
+        const isSelected = friend.name === document.getElementById('selected-friend').textContent;
+        const selectedIndicator = isSelected ? ' ✓ ' : '';
+        const favorited = isFavorite(friend.name);
+        const starClass = favorited ? 'favorited' : 'unfavorited';
+        
         return `
-            <div class="friend-item" onclick="showFriendDetail('${friend.name}')">
-                <strong>${selectedIndicator}${friend.name}</strong><br>
-                <small>Last screenshot: ${friend.last_screenshot_time ? timeAgo(friend.last_screenshot_time) : 'Never'}</small>
+            <div class="friend-item">
+                <span class="star ${starClass}" onclick="event.stopPropagation(); toggleFavorite('${friend.name.replace(/'/g, "\\'")}')">★</span>
+                <span onclick="showFriendDetail('${friend.name}')" style="cursor: pointer; flex: 1;">
+                    <strong>${selectedIndicator}${friend.name}</strong><br>
+                    <small>Last screenshot: ${friend.last_screenshot_time ? timeAgo(friend.last_screenshot_time) : 'Never'}</small>
+                </span>
             </div>
         `;
     }).join('');
