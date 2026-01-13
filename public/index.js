@@ -339,6 +339,17 @@ function showFriendDetail(friendName) {
     updateFriendSelectedStatus();
 }
 
+function showFriendsList() {
+    // Switch views
+    document.getElementById('friend-detail-view').classList.add('hidden');
+    document.getElementById('screenshots-view').classList.add('hidden');
+    document.getElementById('screenshot-detail-view').classList.add('hidden');
+    document.getElementById('friends-view').classList.remove('hidden');
+    
+    currentFriend = null;
+    currentScreenshot = null;
+}
+
 function updateFavoriteButton() {
     const favoriteBtn = document.getElementById('favorite-btn');
     const isFav = isFavorite(currentFriend.name);
@@ -359,17 +370,6 @@ function toggleCurrentFavorite() {
     
     toggleFavorite(currentFriend.name);
     updateFavoriteButton();
-}
-
-function showFriendsList() {
-    // Switch views
-    document.getElementById('friend-detail-view').classList.add('hidden');
-    document.getElementById('screenshots-view').classList.add('hidden');
-    document.getElementById('screenshot-detail-view').classList.add('hidden');
-    document.getElementById('friends-view').classList.remove('hidden');
-    
-    currentFriend = null;
-    currentScreenshot = null;
 }
 
 async function updateFriendSelectedStatus() {
