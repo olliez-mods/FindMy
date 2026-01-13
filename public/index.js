@@ -474,10 +474,15 @@ async function deleteAllScreenshots() {
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
+    // Force URL to home immediately
+    if (window.location.pathname !== '/') {
+        window.history.replaceState({view: 'friends'}, '', '/');
+    }
     loadFriends();
 });
 
 // Simple home button function
 function goHome() {
+    window.history.pushState({view: 'friends'}, '', '/');
     showFriendsList();
 }
