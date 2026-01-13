@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FindMy Friends</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            max-width: 600px; 
+        }
+        button { 
+            padding: 10px 15px; 
+            margin: 5px; 
+            font-size: 16px; 
+            min-height: 44px; 
+        }
+        .friend-item { 
+            border: 1px solid #ccc; 
+            margin: 10px 0; 
+            padding: 15px; 
+            cursor: pointer; 
+        }
+        .friend-item:hover { 
+            background-color: #f5f5f5; 
+        }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px; 
+        }
+        .status.loading { 
+            background-color: #fff3cd; 
+        }
+        .status.error { 
+            background-color: #f8d7da; 
+        }
+        .status.success { 
+            background-color: #d4edda; 
+        }
+        .hidden { 
+            display: none; 
+        }
+        img { 
+            max-width: 100%; 
+            height: auto; 
+        }
+        .back-btn { 
+            margin-bottom: 20px; 
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Friends List View -->
+    <div id="friends-view">
+        <h1>FindMy Friends</h1>
+        
+        <div id="status-info" class="status">
+            <div>Last sync: <span id="last-sync">Loading...</span></div>
+            <div>Selected friend: <span id="selected-friend">None</span></div>
+            <div>Friends count: <span id="friends-count">Loading...</span></div>
+        </div>
+
+        <button id="sync-btn" onclick="syncFriends()">Sync Friends List</button>
+
+        <div id="sync-status" class="status hidden"></div>
+
+        <div id="friends-container">
+            <div class="status loading">Loading friends...</div>
+        </div>
+    </div>
+
+    <!-- Friend Detail View -->
+    <div id="friend-detail-view" class="hidden">
+        <button class="back-btn" onclick="showFriendsList()">← Back to Friends</button>
+        
+        <h2 id="friend-name">Friend Name</h2>
+        
+        <div id="friend-status" class="status">
+            <div>Selected: <span id="friend-selected">No</span></div>
+            <div>Last screenshot: <span id="friend-last-screenshot">Never</span></div>
+        </div>
+
+        <button id="select-friend-btn" onclick="selectCurrentFriend()">Select Friend</button>
+        <button id="take-screenshot-btn" onclick="takeScreenshot()">Take Screenshot</button>
+
+        <div id="friend-task-status" class="status hidden"></div>
+
+        <div id="screenshot-container">
+            <h3>Last Screenshot:</h3>
+            <img id="friend-screenshot" src="" alt="No screenshot available" style="display: none;">
+            <div id="no-screenshot" class="status">No screenshot available</div>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>

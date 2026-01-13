@@ -27,14 +27,34 @@ DEFAULT_CONFIG = {
 }
 
 class Friend:
-  def __init__(self, name, last_seen=None, status=None):
-    pass
+  def __init__(self, name:str, scrolls:int, y:int):
+    self.name:str = name
+    self.scrolls:int = scrolls
+    self.y:int = y
+
+    self.last_screenshot:str = None
+    self.last_screenshot_at:float = None
+  def to_dict(self):
+    return {
+      "name": self.name,
+      "last_screenshot": self.last_screenshot,
+      "last_screenshot_at": self.last_screenshot_at,
+      "scrolls": self.scrolls,
+      "y": self.y
+    }
+  @staticmethod
+  def from_dict(data:dict):
+    friend = Friend(data["name"], data["scrolls"], data["y"])
+    friend.last_screenshot = data.get("last_screenshot", None)
+    friend.last_screenshot_at = data.get("last_screenshot_at", None)
+    return friend
+  def __repr__(self): return f"Friend(name={self.name}, scrolls={self.scrolls}, y={self.y})"
 
 class FindMy:
   def __init__(self):
-    self.friends_index = {}
+    self.friends_index:dict[str, Friend] = {}
     self.selected_friend:str = None
-    self.currently_selected_friend = None  # Add this missing attribute
+    self.currently_selected_friend:str|None = None
     self.config = DEFAULT_CONFIG.copy()
     self.load_config()
   
@@ -51,7 +71,7 @@ class FindMy:
     print("Building Friends index (OCR scan)...")
     self.scroll_to_top()
 
-    self.friends_index:dict[str, dict[str, int]] = {}
+    self.friends_index.clear()
     seen_names = set()
     scroll_count = 0 # We keep track so we can replay the scrolls later
     scrolls_without_new_names = 0 # To detect end of list
@@ -73,7 +93,7 @@ class FindMy:
         name = self.clean_name(raw_name)
         if not name or name in seen_names: return
         screen_y = self.config["friends_list_region"][1] + last_top
-        self.friends_index[name] = {"scrolls": scroll_count, "y": screen_y}
+        self.friends_index[name] = Friend(name, scroll_count, screen_y)
         seen_names.add(name)
         new_names_this_scroll += 1
         print(f"Indexed: {name} scrolls={scroll_count} y={screen_y}")
@@ -109,13 +129,7 @@ class FindMy:
       scroll_count += 1
       time.sleep(SCROLL_WAIT)
     
-    self.last_sync = datetime.now().isoformat()
-    cache_data = {
-      "friends_index": self.friends_index,
-      "last_sync": self.last_sync
-    }
-    with open(CACHE_FILE, "w") as f:
-      json.dump(cache_data, f, indent=2)
+    self.save_index()
     print(f"Indexed {len(self.friends_index)} friends at {self.last_sync}")
 
   def click_friend(self, name:str, force_click=False):
@@ -135,16 +149,16 @@ class FindMy:
 
     self.scroll_to_top()
 
-    for _ in range(self.friends_index[key]["scrolls"]):
+    for _ in range(self.friends_index[key].scrolls):
       self.mouse_to_list()
       pyautogui.scroll(-SCROLL_LENGTH)
       time.sleep(SCROLL_WAIT)
 
     # Perform the click in the middle of the name area
     click_x = self.config["friends_list_region"][0] + (self.config["friends_list_region"][2] // 2)
-    click_y = self.friends_index[key]["y"]
+    click_y = self.friends_index[key].y
     pyautogui.click(click_x, click_y)
-    print(f"Clicked {name} (scrolls={self.friends_index[key]['scrolls']}, y={click_y})")
+    print(f"Clicked {name} (scrolls={self.friends_index[key].scrolls}, y={click_y})")
     time.sleep(self.config["map_load_delay"])
 
     # Update currently selected friend
@@ -153,29 +167,42 @@ class FindMy:
 
   def screenshot_map(self, custom_filename:str=None):
       """Take screenshot of map area, of currently selected friend"""
-      if(not self.currently_selected_friend):
-        self.currently_selected_friend = "NO_SELECTION"
+      if(not self.currently_selected_friend): friend_name = "NO_SELECTION"
+      else: friend_name = self.currently_selected_friend
       
       timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
       filename = self.config["filename_format"]
       if(custom_filename): filename = custom_filename
-      filename = filename.format(name=self.currently_selected_friend, timestamp=timestamp)
+      filename = filename.format(name=friend_name, timestamp=timestamp)
       if(filename[:-4].lower() != ".png"): filename += ".png" # Ensure .png extension
       path = os.path.join(self.config["screenshot_dir"], filename)
       pyautogui.screenshot(region=self.config["map_region"]).save(path)
       print(f"Saved screenshot: {filename}")
 
-      # If we had no selection, reset to None
-      if(self.currently_selected_friend == "NO_SELECTION"): self.currently_selected_friend = None
-
+      current_friend = self.get_selected_friend()
+      if(current_friend):
+        current_friend.last_screenshot = filename
+        current_friend.last_screenshot_at = time.time()
+        self.save_index()
       return filename
+
+  def save_index(self):
+    cache_data = {
+      "friends_index": { name: friend.to_dict() for name, friend in self.friends_index.items() },
+      "last_sync": self.last_sync
+    }
+    with open(CACHE_FILE, "w") as f: json.dump(cache_data, f, indent=2)
 
   def load_or_build_index(self):
     # Try to load existing index
     if os.path.exists(CACHE_FILE):
       with open(CACHE_FILE, "r") as f:
-        cache_data = json.load(f)
-        self.friends_index = cache_data.get("friends_index", {})
+        cache_data:dict = json.load(f)
+        if(not cache_data or "friends_index" not in cache_data):
+          print("No valid cache data, rebuilding index...")
+          self.build_index()
+          return
+        self.friends_index = { name: Friend.from_dict(friend_data) for name, friend_data in cache_data.get("friends_index", {}).items() }
         self.last_sync = cache_data.get("last_sync", None)
         
         if self.last_sync:
@@ -213,18 +240,18 @@ class FindMy:
         return indexed_name
     return None
   
-  def get_all_friends(self):
+  def get_all_friends(self) -> list[Friend]:
     """Get list of all indexed friends"""
-    return list(self.friends_index.keys())
+    return list(self.friends_index.values())
 
   def clear_selection(self):
     """Clear currently selected friend tracking"""
     self.currently_selected_friend = None
     print("Cleared friend selection tracking")
 
-  def get_selected_friend(self):
+  def get_selected_friend(self) -> Friend | None:
     """Get currently selected friend"""
-    return self.currently_selected_friend
+    return self.friends_index.get(self.currently_selected_friend, None)
     
   @staticmethod
   def clean_name(name):
