@@ -70,6 +70,17 @@ class FindMy:
 
   def build_index(self):
     print("Building Friends index (OCR scan)...")
+    
+    # Save current friends data before clearing
+    saved_friends_data = {}
+    for friend_name, friend in self.friends_index.items():
+      saved_friends_data[friend_name] = {
+        'last_screenshot': friend.last_screenshot,
+        'last_screenshot_at': friend.last_screenshot_at,
+        'name': friend.name
+      }
+    print(f"Saved metadata for {len(saved_friends_data)} existing friends")
+    
     self.scroll_to_top()
 
     self.friends_index.clear()
@@ -130,6 +141,15 @@ class FindMy:
       scroll_count += 1
       time.sleep(SCROLL_WAIT)
     
+    # Restore saved metadata - for exact name matches only unfortunately
+    n = 0
+    for friend_name, friend in self.friends_index.items():
+      if friend_name in saved_friends_data:
+        n += 1
+        friend.last_screenshot = saved_friends_data[friend_name]['last_screenshot']
+        friend.last_screenshot_at = saved_friends_data[friend_name]['last_screenshot_at']
+    print(f"Restored metadata for {n} friends from previous index")
+
     self.save_index()
     print(f"Indexed {len(self.friends_index)} friends at {self.last_sync}")
 

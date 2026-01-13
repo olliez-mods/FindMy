@@ -81,8 +81,22 @@ async function loadFriends() {
         friendsData = data.friends || [];
         
         // Update status info
-        document.getElementById('last-sync').textContent = data.last_sync ? 
-            timeAgo(new Date(data.last_sync).getTime() / 1000) : 'Never';
+        let lastSyncText = 'Never';
+        if (data.last_sync) {
+            try {
+                // Handle both ISO format and Unix timestamp
+                let syncTime;
+                if (typeof data.last_sync === 'string') {
+                    syncTime = new Date(data.last_sync).getTime() / 1000;
+                } else {
+                    syncTime = data.last_sync;
+                }
+                lastSyncText = timeAgo(syncTime);
+            } catch (e) {
+                lastSyncText = 'Invalid time';
+            }
+        }
+        document.getElementById('last-sync').textContent = lastSyncText;
         document.getElementById('selected-friend').textContent = data.selected_friend || 'None';
         document.getElementById('friends-count').textContent = friendsData.length;
 
@@ -102,12 +116,16 @@ function renderFriendsList() {
         return;
     }
 
-    container.innerHTML = friendsData.map(friend => `
-        <div class="friend-item" onclick="showFriendDetail('${friend.name}')">
-            <strong>${friend.name}</strong><br>
-            <small>Last screenshot: ${friend.last_screenshot_time ? timeAgo(friend.last_screenshot_time) : 'Never'}</small>
-        </div>
-    `).join('');
+    container.innerHTML = friendsData.map(friend => {
+        const isSelected = friendsData.find(f => f.name === document.getElementById('selected-friend').textContent);
+        const selectedIndicator = (friend.name === document.getElementById('selected-friend').textContent) ? ' ✓ ' : '';
+        return `
+            <div class="friend-item" onclick="showFriendDetail('${friend.name}')">
+                <strong>${selectedIndicator}${friend.name}</strong><br>
+                <small>Last screenshot: ${friend.last_screenshot_time ? timeAgo(friend.last_screenshot_time) : 'Never'}</small>
+            </div>
+        `;
+    }).join('');
 }
 
 async function syncFriends() {
@@ -187,8 +205,18 @@ async function updateFriendSelectedStatus() {
         document.getElementById('friend-selected').textContent = isSelected ? 'Yes' : 'No';
         
         const selectBtn = document.getElementById('select-friend-btn');
+        const screenshotBtn = document.getElementById('take-screenshot-btn');
+        
         selectBtn.textContent = isSelected ? 'Already Selected' : 'Select Friend';
         selectBtn.disabled = isSelected;
+        
+        // Disable screenshot button if friend is not selected
+        screenshotBtn.disabled = !isSelected;
+        if (!isSelected) {
+            screenshotBtn.textContent = 'Select Friend First';
+        } else {
+            screenshotBtn.textContent = 'Take Screenshot';
+        }
     } catch (error) {
         console.error('Failed to update selected status:', error);
     }
